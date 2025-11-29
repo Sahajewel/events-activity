@@ -1,0 +1,23 @@
+model User {
+    id           String   @id @default(uuid())
+    email        String   @unique
+    password     String
+    role         Role     @default(USER)
+    fullName     String
+    profileImage String?
+    bio          String?
+    location     String?
+    interests    String[] @default([])
+
+    isActive  Boolean  @default(true)
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
+
+    // Relations
+    hostedEvents    Event[]   @relation("HostedEvents")
+    bookings        Booking[]
+    reviews         Review[]  @relation("UserReviews")
+    receivedReviews Review[]  @relation("HostReviews")
+
+    @@map("users")
+}

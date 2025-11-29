@@ -1,0 +1,20 @@
+model Booking {
+    id      String        @id @default(uuid())
+    userId  String
+    eventId String
+    status  BookingStatus @default(PENDING)
+    amount  Float
+
+    user  User  @relation(fields: [userId], references: [id], onDelete: Cascade)
+    event Event @relation(fields: [eventId], references: [id], onDelete: Cascade)
+
+    payment Payment?
+
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
+
+    @@unique([userId, eventId])
+    @@index([userId])
+    @@index([eventId])
+    @@map("bookings")
+}
