@@ -9,7 +9,8 @@ const auth = (...roles: string[]) => {
     next: NextFunction
   ) => {
     try {
-      const token = req.cookies.accessToken;
+      const token =
+        req.cookies.accessToken || req.headers.authorization?.split(" ")[1];
       if (!token) {
         throw new Error("You are not authorized");
       }
