@@ -1,17 +1,21 @@
-// import express, { NextFunction, Request, Response } from "express";
-// import { UserController } from "./user.controller";
-// import { upload } from "../../shared/cloudinary";
-// const router = express.Router();
+import { Router } from "express";
+import * as userController from "./user.controller";
+import auth from "../../middlewares/auth";
+import { Role } from "@prisma/client";
+import { validate } from "../../middlewares/validateRequest";
+import { updateProfileSchema } from "./user.validation";
+import { upload } from "../../shared/upload";
 
-// router.post(
-//   "/register",
-//   upload.single("profileImage")
-//   // (req: Request, res: Response, next: NextFunction) => {
-//   //   req.body = Aut.createUserValidationSchema.parse(
-//   //     JSON.parse(req.body.data)
-//   //   );
-//   //   return UserController.createUser(req, res, next);
-//   // }
-// );
+const router = Router();
 
-// export const UserRoutes = router;
+router.get("/", auth(Role.ADMIN), userController.getAllUsers);
+router.get("/:id", userController.getUserProfile);
+router.patch(
+  "/profile",
+  auth(),
+  upload.single("profileImage"),
+  validate(updateProfileSchema),
+  userController.updateProfile
+);
+
+export const UserRoutes = router;

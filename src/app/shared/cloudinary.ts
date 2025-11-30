@@ -1,6 +1,6 @@
 import { v2 as cloudinary } from "cloudinary";
-import { CloudinaryStorage } from "multer-storage-cloudinary";
-import multer from "multer";
+// import { CloudinaryStorage } from "multer-storage-cloudinary";
+// import multer from "multer";
 import dotenv from "dotenv";
 
 dotenv.config();
@@ -11,13 +11,14 @@ cloudinary.config({
   api_secret: process.env.CLOUDINARY_API_SECRET,
 });
 
-const storage = new CloudinaryStorage({
-  cloudinary: cloudinary,
-  params: (req, file) => ({
-    folder: "users", // folder name
-    format: file.mimetype.split("/")[1], // jpg/png/jpeg
-    public_id: `${Date.now()}-${file.originalname}`,
-  }),
-});
+export default cloudinary;
+// const storage = new CloudinaryStorage({
+//   cloudinary: cloudinary,
+//   params: (req, file) => ({
+//     folder: "users", // folder name
+//     format: file.mimetype.split("/")[1], // jpg/png/jpeg
+//     public_id: `${Date.now()}-${file.originalname}`,
+//   }),
+// });
 
-export const upload = multer({ storage });
+// export const upload = multer({ storage });
