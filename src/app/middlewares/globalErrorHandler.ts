@@ -3,6 +3,7 @@ import { NextFunction, Request, Response } from "express";
 import httpStatus from "http-status";
 import { ZodError } from "zod";
 import { Prisma } from "../../generated/client";
+import ApiError from "../errors/ApiError";
 
 const globalErrorHandler = (
   err: any,
@@ -14,6 +15,12 @@ const globalErrorHandler = (
   let success = false;
   let message = err.message || "Something went wrong";
   let error = err;
+
+  if (err instanceof ApiError) {
+    statusCode = err.statusCode;
+    message = err.message;
+    error = { statusCode: err.statusCode, isOperational: err.isOperational };
+  }
 
   if (err instanceof Prisma.PrismaClientKnownRequestError) {
     if (err.code === "P2002") {

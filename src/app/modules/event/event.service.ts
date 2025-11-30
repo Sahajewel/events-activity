@@ -141,7 +141,7 @@ export const getEventById = async (eventId: string) => {
         },
       },
       bookings: {
-        // where: { status: "CONFIRMED" },
+        where: { status: "CONFIRMED" },
         include: {
           user: {
             select: {
