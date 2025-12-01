@@ -169,7 +169,23 @@ export const getEventById = async (eventId: string) => {
   if (!event) {
     throw new ApiError(404, "Event not found");
   }
-
+  // ============================
+  // ⭐ CHECK EVENT COMPLETED LOGIC
+  // ============================
+  const now = new Date();
+  if (event.date < now && event.status !== "COMPLETED") {
+    await prisma.event.update({
+      where: { id: cleanedEventId },
+      data: { status: "COMPLETED" },
+    });
+    // Update all CONFIRMED bookings to COMPLETED
+    await prisma.booking.updateMany({
+      where: { eventId: cleanedEventId, status: "CONFIRMED" },
+      data: { status: "COMPLETED" },
+    });
+    // update local object
+    event.status = "COMPLETED";
+  }
   // Calculate host average rating
   const hostRatings = event.host.receivedReviews;
   const hostAvgRating =

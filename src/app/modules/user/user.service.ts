@@ -1,7 +1,10 @@
+import { ca, de, tr } from "zod/v4/locales";
+import ApiError from "../../errors/ApiError";
 import { calculatePagination } from "../../shared/calculatePagination";
 import cloudinary from "../../shared/cloudinary";
 import { PaginationOptions } from "../../shared/pagination";
 import prisma from "../../shared/prisma";
+import { object } from "zod";
 
 export const getUserById = async (userId: string) => {
   const user = await prisma.user.findUnique({
@@ -84,6 +87,7 @@ export const updateProfile = async (
   file?: Express.Multer.File
 ) => {
   let profileImageUrl = undefined;
+  let interestsArray = undefined;
 
   if (file) {
     const result = await cloudinary.uploader.upload(
@@ -92,11 +96,28 @@ export const updateProfile = async (
     );
     profileImageUrl = result.secure_url;
   }
+  if (data.interests) {
+    if (typeof data.interests === "string") {
+      try {
+        const parsedArray = JSON.parse(data.interests);
+        if (Array.isArray(parsedArray)) {
+          interestsArray = parsedArray;
+        } // JSON parse kore alada variable-e rakhlam
+      } catch (error) {
+        interestsArray = []; // Invalid JSON hole empty array
+      }
+    } else if (Array.isArray(data.interests)) {
+      interestsArray = data.interests; // Jodi already array hoy
+    }
+    // data object theke interests remove korun, karon amra niche alada kore update korbo
+    delete data.interests;
+  }
 
   const user = await prisma.user.update({
     where: { id: userId },
     data: {
       ...data,
+      ...(interestsArray && { interests: interestsArray }),
       ...(profileImageUrl && { profileImage: profileImageUrl }),
     },
     select: {
