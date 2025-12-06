@@ -32,20 +32,26 @@ export const getEventById = asyncHandler(
   }
 );
 
+// eventController.ts
+// eventController.ts → updateEvent
 export const updateEvent = asyncHandler(
   async (req: Request & { user?: any }, res: Response) => {
-    const updateData = req.body.data ? JSON.parse(req.body.data) : req.body;
+    const { id } = req.params;
 
-    const event = await eventService.updateEvent(
-      req.params.id,
+    // Multer + FormData → sob kichu req.body te ache (string)
+    // z.coerce korbe number e
+    const updateData = req.body;
+
+    const updatedEvent = await eventService.updateEvent(
+      id,
       req.user!.id,
       updateData,
-      req.file
+      req.file // image
     );
-    res.json(new ApiResponse(200, event, "Event updated successfully"));
+
+    res.json(new ApiResponse(200, updatedEvent, "Event updated successfully"));
   }
 );
-
 export const deleteEvent = asyncHandler(
   async (req: Request & { user: any }, res: Response) => {
     const result = await eventService.deleteEvent(req.params.id, req.user!.id);

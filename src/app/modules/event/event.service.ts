@@ -19,8 +19,9 @@ export const createEvent = async (
   data: any,
   file?: Express.Multer.File
 ) => {
-  let imageUrl = undefined;
+  let imageUrl: string | undefined = undefined;
 
+  // Upload image if exists
   if (file) {
     const result = await cloudinary.uploader.upload(
       `data:${file.mimetype};base64,${file.buffer.toString("base64")}`,
@@ -203,68 +204,78 @@ export const getEventById = async (eventId: string) => {
   };
 };
 
+// eventService.updateEvent
 export const updateEvent = async (
   eventId: string,
   hostId: string,
   data: any,
   file?: Express.Multer.File
 ) => {
-  const cleanedEventId = eventId.trim();
   const event = await prisma.event.findUnique({
-    where: { id: cleanedEventId },
+    where: { id: eventId },
   });
 
   if (!event) {
     throw new ApiError(404, "Event not found");
   }
 
+  // Permission check
   if (event.hostId !== hostId) {
-    throw new ApiError(403, "You do not have permission to update this event");
+    throw new ApiError(403, "You are not authorized to update this event");
   }
 
-  let imageUrl = undefined;
+  let imageUrl = event.imageUrl;
 
+  // Jodi new image upload kora hoy
   if (file) {
+    // Puran image thakle delete kor (optional, but recommended)
+    if (event.imageUrl) {
+      const publicId = event.imageUrl.split("/").pop()?.split(".")[0];
+      await cloudinary.uploader.destroy(`events-platform/events/${publicId}`);
+    }
+
     const result = await cloudinary.uploader.upload(
       `data:${file.mimetype};base64,${file.buffer.toString("base64")}`,
-      { folder: "events-platform/events" }
+      {
+        folder: "events-platform/events",
+      }
     );
     imageUrl = result.secure_url;
   }
 
-  try {
-    const updatedEvent = await prisma.event.update({
-      where: { id: cleanedEventId, hostId: hostId },
-      data: {
-        ...data,
-        ...(data.date ? { date: new Date(data.date) } : {}),
-        ...(imageUrl && { imageUrl }),
-      },
-      include: {
-        host: {
-          select: {
-            id: true,
-            fullName: true,
-            profileImage: true,
-          },
+  // Final update
+  const updatedEvent = await prisma.event.update({
+    where: { id: eventId },
+    data: {
+      name: data.name,
+      type: data.type,
+      description: data.description,
+      location: data.location,
+      date: data.date ? new Date(data.date) : undefined,
+      joiningFee:
+        data.joiningFee !== undefined ? Number(data.joiningFee) : undefined,
+      maxParticipants: data.maxParticipants
+        ? Number(data.maxParticipants)
+        : undefined,
+      minParticipants:
+        data.minParticipants !== undefined && data.minParticipants !== null
+          ? Number(data.minParticipants)
+          : null,
+      status: data.status,
+      imageUrl: imageUrl,
+    },
+    include: {
+      host: {
+        select: {
+          id: true,
+          fullName: true,
+          profileImage: true,
         },
       },
-    });
+    },
+  });
 
-    return updatedEvent;
-  } catch (error: any) {
-    // Jodi update operation P2025 error dei (mane record na pai),
-    // tahole seta 404/403 hishebe handle korun.
-    if (error.code === "P2025") {
-      // Ekhane duto somvabona: ID bhul (404) ba Host ID bhul (403).
-      // Sobcheye upojukto holo ownership error dewa, jodi ID check hoye thake.
-      throw new ApiError(
-        403,
-        "Event not found or you do not have permission to update it."
-      );
-    }
-    throw error; // Any other error
-  }
+  return updatedEvent;
 };
 
 export const deleteEvent = async (eventId: string, hostId: string) => {

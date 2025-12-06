@@ -14,23 +14,23 @@ const moduleRoutes = [
     route: AuthRoutes,
   },
   {
-    path: "/user",
+    path: "/users",
     route: UserRoutes,
   },
   {
-    path: "/event",
+    path: "/events",
     route: EventRoutes,
   },
   {
-    path: "/booking",
+    path: "/bookings",
     route: BookingRoutes,
   },
   {
-    path: "/review",
+    path: "/reviews",
     route: ReviewRoutes,
   },
   {
-    path: "/payment",
+    path: "/payments",
     route: PaymentRoutes,
   },
   {

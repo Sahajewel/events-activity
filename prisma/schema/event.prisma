@@ -1,3 +1,4 @@
+// prisma/schema.prisma
 model Event {
     id              String      @id @default(uuid())
     name            String
@@ -5,19 +6,16 @@ model Event {
     description     String      @db.Text
     date            DateTime
     location        String
-    minParticipants Int         @default(1)
+    minParticipants Int? // <-- ei ? ta add kor! (nullable)
     maxParticipants Int
     joiningFee      Float       @default(0)
     imageUrl        String?
     status          EventStatus @default(OPEN)
+    hostId          String
+    host            User        @relation("HostedEvents", fields: [hostId], references: [id], onDelete: Cascade)
+    createdAt       DateTime    @default(now())
+    updatedAt       DateTime    @updatedAt
 
-    hostId String
-    host   User   @relation("HostedEvents", fields: [hostId], references: [id], onDelete: Cascade)
-
-    createdAt DateTime @default(now())
-    updatedAt DateTime @updatedAt
-
-    // Relations
     bookings Booking[]
     reviews  Review[]
 

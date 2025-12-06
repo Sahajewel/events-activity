@@ -1,6 +1,7 @@
 import bcrypt from "bcryptjs";
 import prisma from "../../shared/prisma";
 import { generateToken } from "../../shared/jwt";
+import ApiError from "../../errors/ApiError";
 
 const secret = process.env.JWT_SECRET || "default_jwt_secret";
 

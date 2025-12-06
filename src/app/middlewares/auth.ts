@@ -10,17 +10,18 @@ const auth = (...roles: string[]) => {
   ) => {
     try {
       const token =
-        req.cookies.accessToken || req.headers.authorization?.split(" ")[1];
+        req.cookies.token || req.headers.authorization?.split(" ")[1]; // <-- fixed name
       if (!token) {
         throw new Error("You are not authorized");
       }
-      const verifyUser = verifyToken(token, config.jwt_secret as string);
 
+      const verifyUser = verifyToken(token, config.jwt_secret as string);
       req.user = verifyUser;
 
       if (roles.length && !roles.includes(verifyUser.role)) {
         throw new Error("You are not authorized");
       }
+
       next();
     } catch (err) {
       next(err);

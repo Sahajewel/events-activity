@@ -3,6 +3,7 @@ import { Request, Response } from "express";
 import * as paymentService from "./payment.service";
 import asyncHandler from "../../shared/asyncHandler";
 import ApiResponse from "../../shared/apiResponse";
+import prisma from "../../shared/prisma";
 
 export const createPaymentIntent = asyncHandler(
   async (req: Request & { user?: any }, res: Response) => {
@@ -33,3 +34,23 @@ export const getPaymentHistory = asyncHandler(
     );
   }
 );
+// payment.controller.ts e add koro
+export const updatePaymentStatus = asyncHandler(
+  async (req: Request, res: Response) => {
+    const { paymentIntentId } = req.params;
+
+    const payment = await prisma.payment.update({
+      where: { transactionId: paymentIntentId },
+      data: { status: "COMPLETED" },
+    });
+
+    await prisma.booking.update({
+      where: { id: payment.bookingId },
+      data: { status: "CONFIRMED" },
+    });
+
+    res.json(new ApiResponse(200, payment, "Payment updated"));
+  }
+);
+
+// payment.routes.ts e add koro
