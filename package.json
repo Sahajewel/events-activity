@@ -5,11 +5,11 @@
   "scripts": {
     "dev": "ts-node-dev --respawn --transpile-only ./src/server.ts",
     "build": "tsc",
-    "start": "node ./dist/server.ts",
+    "start": "node ./dist/server.js",
     "postinstall": "prisma generate --schema=./prisma/schema.prisma"
   },
   "prisma": {
-    "schema": "./prisma/schema"
+    "schema": "./prisma/schema.prisma"
   },
   "keywords": [],
   "author": "",
