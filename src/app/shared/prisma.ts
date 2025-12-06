@@ -1,8 +1,9 @@
+import { PrismaPg } from "@prisma/adapter-pg";
+import { PrismaClient } from "@prisma/client";
 // src/app/shared/prisma.ts
 
-import { PrismaClient } from "@prisma/client";
 import { Pool } from "pg";
-import { PrismaPg } from "@prisma/adapter-pg"; // CORRECTED IMPORT NAME
+// import { PrismaPg } from "@prisma/adapter-pg"; // CORRECTED IMPORT NAME
 
 // 1. Create the Pool
 const pool = new Pool({

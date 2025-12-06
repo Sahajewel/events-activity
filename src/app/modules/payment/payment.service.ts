@@ -5,7 +5,7 @@ import ApiError from "../../errors/ApiError";
 import config from "../../../config";
 
 const stripe = new Stripe(config.stripe_secret_key || "", {
-  apiVersion: "2025-11-17.clover",
+  // apiVersion: "2025-11-17.clover",
 });
 
 // Demo mode check

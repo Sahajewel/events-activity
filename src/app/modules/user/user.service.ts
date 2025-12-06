@@ -1,10 +1,8 @@
-import { ca, de, tr } from "zod/v4/locales";
 import ApiError from "../../errors/ApiError";
 import { calculatePagination } from "../../shared/calculatePagination";
 import cloudinary from "../../shared/cloudinary";
 import { PaginationOptions } from "../../shared/pagination";
 import prisma from "../../shared/prisma";
-import { object } from "zod";
 
 export const getUserById = async (userId: string) => {
   const user = await prisma.user.findUnique({

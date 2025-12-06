@@ -1,7 +1,8 @@
+import { Role } from "@prisma/client";
+
 import { Router } from "express";
 import * as authController from "./auth.controller";
 import auth from "../../middlewares/auth";
-import { Role } from "@prisma/client";
 import { validate } from "../../middlewares/validateRequest";
 import { createUserValidationSchema, loginSchema } from "./auth.validation";
 

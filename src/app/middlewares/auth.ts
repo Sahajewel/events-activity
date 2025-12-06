@@ -9,10 +9,12 @@ const auth = (...roles: string[]) => {
     next: NextFunction
   ) => {
     try {
-      const token =
-        req.cookies.token || req.headers.authorization?.split(" ")[1]; // <-- fixed name
+      const token = req.headers.authorization?.split(" ")[1]; // <-- fixed name
       if (!token) {
-        throw new Error("You are not authorized");
+        return res.status(401).json({
+          success: false,
+          message: "You are not authorized",
+        });
       }
 
       const verifyUser = verifyToken(token, config.jwt_secret as string);
@@ -24,7 +26,10 @@ const auth = (...roles: string[]) => {
 
       next();
     } catch (err) {
-      next(err);
+      return res.status(401).json({
+        success: false,
+        message: "Invalid or expired token",
+      });
     }
   };
 };

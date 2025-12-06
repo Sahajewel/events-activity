@@ -4,11 +4,11 @@ enum Role {
     ADMIN
 }
 
-enum UserStatus {
-    ACTIVE
-    INACTIVE
-    DELETE
-}
+// enum UserStatus {
+//     ACTIVE
+//     INACTIVE
+//     DELETE
+// }
 
 enum PaymentStatus {
     PENDING
