@@ -291,22 +291,6 @@ GET    /dashboard           - Get platform statistics
 
 ## 💳 Payment Integration
 
-1. User clicks "Join Event" on paid event
-2. Frontend calls `POST /payments/create-intent`
-3. Backend creates Stripe PaymentIntent
-4. Frontend uses Stripe.js to collect payment
-5. User confirms payment
-6. Stripe webhook notifies backend
-7. Backend updates payment status and adds user to event
-
-```bash
-# Run tests
-npm run dev test
-
-# Run specific test file
-npm test -- user.test.ts
-```
-
 ## 📦 Deployment
 
 ### Vercel

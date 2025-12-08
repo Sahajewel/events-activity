@@ -17,7 +17,7 @@ const auth = (...roles: string[]) => {
         });
       }
 
-      const verifyUser = verifyToken(token, config.jwt_secret as string);
+      const verifyUser = verifyToken(token, config.access_token as string);
       req.user = verifyUser;
 
       if (roles.length && !roles.includes(verifyUser.role)) {

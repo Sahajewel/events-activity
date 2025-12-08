@@ -77,7 +77,7 @@ export const createPaymentIntent = async (
   } else {
     paymentIntent = await stripe.paymentIntents.create({
       amount: Math.round(booking.amount * 100),
-      currency: "bdt",
+      currency: "usd",
       metadata: {
         bookingId: booking.id,
         userId,

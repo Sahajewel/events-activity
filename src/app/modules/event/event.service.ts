@@ -12,6 +12,7 @@ interface EventFilters {
   search?: string;
   dateFrom?: string;
   dateTo?: string;
+  joiningFee?: number;
 }
 
 export const createEvent = async (

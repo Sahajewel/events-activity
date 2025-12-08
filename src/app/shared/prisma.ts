@@ -19,3 +19,7 @@ const prisma = new PrismaClient({
 });
 
 export default prisma;
+
+// "prisma:migrate": "prisma migrate dev",
+//     "studio": "dotenv -e .env npx prisma studio --config prisma.config.ts",
+//     "postinstall": "prisma generate",

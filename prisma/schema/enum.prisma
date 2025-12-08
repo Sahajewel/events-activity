@@ -30,3 +30,9 @@ enum EventStatus {
     CANCELLED
     COMPLETED
 }
+
+enum RequestStatus {
+    PENDING
+    APPROVED
+    REJECTED
+}

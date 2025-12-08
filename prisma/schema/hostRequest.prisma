@@ -1,0 +1,12 @@
+model HostRequest {
+    id        String        @id @default(uuid())
+    userId    String        @unique
+    status    RequestStatus @default(PENDING)
+    message   String?
+    createdAt DateTime      @default(now())
+    updatedAt DateTime      @updatedAt
+
+    user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+    @@map("host_requests")
+}
