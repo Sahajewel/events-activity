@@ -32,3 +32,10 @@ export const getHostReviews = asyncHandler(
     res.json(new ApiResponse(200, result, "Host reviews fetched successfully"));
   }
 );
+export const getPublicTestimonials = asyncHandler(
+  async (req: Request, res: Response) => {
+    // নতুন সার্ভিস ফাংশন কল করুন
+    const result = await reviewService.getTopReviews(10); // ধরুন 5টি টপ রিভিউ চাচ্ছেন
+    res.json(new ApiResponse(200, result, "Top reviews fetched successfully"));
+  }
+);

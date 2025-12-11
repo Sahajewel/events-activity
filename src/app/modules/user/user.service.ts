@@ -1,9 +1,22 @@
+import { Role } from "@prisma/client";
 import ApiError from "../../errors/ApiError";
 import { calculatePagination } from "../../shared/calculatePagination";
 import cloudinary from "../../shared/cloudinary";
 import { PaginationOptions } from "../../shared/pagination";
 import prisma from "../../shared/prisma";
 
+interface CalculatedPagination {
+  page: number;
+  limit: number;
+  skip: number;
+  sortBy: string;
+  sortOrder: "asc" | "desc";
+}
+interface CustomPaginationOptions extends PaginationOptions {
+  role?: Role;
+  isActive?: string; // assuming UserRole is imported/defined
+  // Add other filterable fields if needed (e.g., searchTerm, isActive)
+}
 export const getUserById = async (userId: string) => {
   const user = await prisma.user.findUnique({
     where: { id: userId },
@@ -135,14 +148,41 @@ export const updateProfile = async (
   return user;
 };
 
-export const getAllUsers = async (options: PaginationOptions) => {
-  const { page, limit, skip, sortBy, sortOrder } = calculatePagination(options);
+// ... অন্যান্য সার্ভিস ফাংশন ...
+
+// user.service.ts
+// ... imports, getUserById, updateProfile ...
+
+export const getAllUsers = async (options: CustomPaginationOptions) => {
+  // 💡 ফিক্স: calculatePagination ফাংশন থেকে আসা ভ্যালুগুলো নিশ্চিতভাবে number/string হবে।
+  // এটিকে CalculatedPagination টাইপে অ্যাসাইন করে দেওয়া হলো।
+  const calculatedPagination = calculatePagination(
+    options
+  ) as CalculatedPagination;
+
+  const { page, limit, skip, sortBy, sortOrder } = calculatedPagination;
+  const { role, isActive } = options;
+
+  const whereCondition: any = {};
+
+  if (role) {
+    whereCondition.role = role;
+  }
+
+  if (isActive !== undefined) {
+    // 'true'/'false' স্ট্রিং থেকে বুলিয়ানে কনভার্ট করা হচ্ছে
+    whereCondition.isActive = isActive === "true";
+  }
 
   const [users, total] = await Promise.all([
     prisma.user.findMany({
-      skip,
-      take: limit,
+      skip, // এখন নিশ্চিত number
+      take: limit, // এখন নিশ্চিত number
+
+      // 💡 ফিক্স: sortBy এখন নিশ্চিতভাবে string, তাই ব্যবহার করা যাবে
       orderBy: { [sortBy]: sortOrder },
+
+      where: whereCondition,
       select: {
         id: true,
         email: true,
@@ -155,7 +195,7 @@ export const getAllUsers = async (options: PaginationOptions) => {
         createdAt: true,
       },
     }),
-    prisma.user.count(),
+    prisma.user.count({ where: whereCondition }),
   ]);
 
   return {

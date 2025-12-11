@@ -146,3 +146,46 @@ export const getHostReviews = async (hostId: string) => {
     totalReviews: reviews.length,
   };
 };
+// review.service.ts এর getTopReviews ফাংশনটি আপডেট করুন
+
+export const getTopReviews = async (limit: number) => {
+  // 💡 আপনার সার্ভার কনসোলে লগ করে দেখুন এই ফাংশনটি কল হচ্ছে কি না
+  console.log(`Fetching top ${limit} reviews...`);
+
+  try {
+    const reviews = await prisma.review.findMany({
+      take: limit,
+      // ⭐ সমাধান: orderBy কে সহজ করে শুধুমাত্র rating এবং createdAt ব্যবহার করুন
+      orderBy: [
+        { rating: "desc" }, // রেটিং সর্বোচ্চ
+        { createdAt: "desc" }, // তারপর নতুন রিভিউ আগে
+      ],
+
+      // ⭐ আপনার মডেলে থাকা User এবং Event মডেলের সাথে সম্পর্ক ঠিক থাকতে হবে
+      include: {
+        user: {
+          select: {
+            id: true, // আইডি যুক্ত করুন যাতে রিলেশন ঠিক থাকে
+            fullName: true,
+            profileImage: true,
+          },
+        },
+        event: {
+          select: {
+            id: true,
+            name: true,
+          },
+        },
+      },
+    });
+
+    console.log(`Successfully fetched ${reviews.length} reviews.`);
+    return reviews;
+  } catch (error) {
+    // 🚨 এররটি কনসোলে স্পষ্টভাবে দেখাবে
+    console.error("❌ CRITICAL PRISMA ERROR (getTopReviews):", error);
+    // আপনি চাইলে এখানে একটি জেনেরিক এরর হ্যান্ডেল করতে পারেন
+    // throw new ApiError(500, "Internal server error fetching testimonials.");
+    throw error; // যাতে asyncHandler এটি ধরে 500 এরর দেয়
+  }
+};

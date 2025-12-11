@@ -11,7 +11,13 @@ export const createEventSchema = z.object({
       .string()
       .refine((val) => !isNaN(Date.parse(val)), "Invalid date format"),
     location: z.string().min(3, "Location is required"),
-    minParticipants: z.number().int().positive().optional(),
+    minParticipants: z.coerce
+      .number()
+      .int()
+      .positive()
+      .optional()
+      .nullable()
+      .transform((val) => (val === 0 || val === null ? null : val)),
     maxParticipants: z.number().int().positive(),
     joiningFee: z.number().nonnegative().optional(),
   }),

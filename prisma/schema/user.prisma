@@ -9,15 +9,16 @@ model User {
     location     String?
     interests    String[] @default([])
 
-    isActive        Boolean      @default(true)
-    createdAt       DateTime     @default(now())
-    updatedAt       DateTime     @updatedAt
-    hostRequest     HostRequest?
+    isActive            Boolean              @default(true)
+    createdAt           DateTime             @default(now())
+    updatedAt           DateTime             @updatedAt
+    hostRequest         HostRequest?
     // Relations
-    hostedEvents    Event[]      @relation("HostedEvents")
-    bookings        Booking[]
-    reviews         Review[]     @relation("UserReviews")
-    receivedReviews Review[]     @relation("HostReviews")
+    hostedEvents        Event[]              @relation("HostedEvents")
+    bookings            Booking[]
+    reviews             Review[]             @relation("UserReviews")
+    receivedReviews     Review[]             @relation("HostReviews")
+    passwordResetTokens PasswordResetToken[]
 
     @@map("users")
 }

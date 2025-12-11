@@ -2,7 +2,6 @@ import { Request, Response } from "express";
 import * as userService from "./user.service";
 import ApiResponse from "../../shared/apiResponse";
 import asyncHandler from "../../shared/asyncHandler";
-
 export const getUserProfile = asyncHandler(
   async (req: Request, res: Response) => {
     const user = await userService.getUserById(req.params.id);

@@ -12,7 +12,7 @@ router.post(
   validate(createReviewSchema),
   reviewController.createReview
 );
-
+router.get("/public-testimonials", reviewController.getPublicTestimonials);
 router.get("/event/:eventId", reviewController.getEventReviews);
 router.get("/host/:hostId", reviewController.getHostReviews);
 
