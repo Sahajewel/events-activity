@@ -2,12 +2,13 @@ import bcrypt from "bcryptjs";
 import prisma from "../../shared/prisma";
 import { generateToken, verifyToken } from "../../shared/jwt";
 import ApiError from "../../errors/ApiError";
-import crypto from "crypto";
+import jwt from "jsonwebtoken";
 import { sendPasswordResetEmail } from "../../shared/email";
 import { addHours } from "date-fns";
 import { User } from "@prisma/client";
 const accessSecret = process.env.ACCESS_TOKEN || "default_acces_token";
 const refreshSecret = process.env.REFRESH_TOKEN || "default_refresh_secret";
+const resetPassSecret = process.env.RESET_PASS_SECRET || "default_reset_secret";
 export const register = async (data: any) => {
   const existingUser = await prisma.user.findUnique({
     where: { email: data.email },
@@ -131,39 +132,56 @@ export const getProfile = async (userId: string) => {
 // তুই create করবি
 
 export const forgotPassword = async (email: string) => {
+  console.log("🔍 Forgot password request for:", email); // ✅ Debug
+
   const user = await prisma.user.findUnique({
     where: { email },
   });
 
-  // Security best practice: user না থাকলেও same message দেখাবো
+  console.log("👤 User found:", user ? "Yes" : "No"); // ✅ Debug
+
+  // Security: User na thakleo same message
   if (!user) {
-    return { message: "If the email exists, a reset link has been sent." };
+    return {
+      message: "If the email exists, a reset link has been sent.",
+    };
   }
 
-  // Delete previous tokens
-  await prisma.passwordResetToken.deleteMany({
-    where: { userId: user.id },
-  });
-
-  // Generate secure random token
-  const rawToken = crypto.randomBytes(32).toString("hex");
-  const hashedToken = await bcrypt.hash(rawToken, 10);
-
-  // Save token
-  await prisma.passwordResetToken.create({
-    data: {
-      token: hashedToken,
-      userId: user.id,
-      expiresAt: addHours(new Date(), 1), // 1 hour expiry
+  // ✅ JWT Token Generate (5 minutes expiry)
+  const resetToken = jwt.sign(
+    {
+      email: user.email,
+      id: user.id,
     },
-  });
+    resetPassSecret,
+    { expiresIn: "5m" } // 5 minutes
+  );
 
-  // Send email
-  const resetLink = `${process.env.FRONTEND_URL}/reset-password?token=${rawToken}&email=${email}`;
+  console.log("🔑 Reset token generated"); // ✅ Debug
 
-  await sendPasswordResetEmail(user.email, user.fullName || "User", resetLink);
+  // Reset Link
+  const resetLink = `${process.env.FRONTEND_URL}/reset-password?token=${resetToken}&email=${email}`;
 
-  return { message: "If the email exists, a reset link has been sent." };
+  console.log("🔗 Reset link:", resetLink); // ✅ Debug
+
+  // ✅ Send Email
+  console.log("📧 Attempting to send email..."); // ✅ Debug
+
+  try {
+    await sendPasswordResetEmail(
+      user.email,
+      user.fullName || "User",
+      resetLink
+    );
+    console.log("✅ Email sent successfully!"); // ✅ Debug
+  } catch (error: any) {
+    console.error("❌ Email sending failed:", error.message); // ✅ Error log
+    throw new ApiError(500, "Failed to send reset email");
+  }
+
+  return {
+    message: "If the email exists, a reset link has been sent.",
+  };
 };
 
 export const resetPassword = async (
@@ -171,36 +189,45 @@ export const resetPassword = async (
   email: string,
   newPassword: string
 ) => {
+  console.log("🔐 Reset password attempt for:", email); // ✅ Debug
+
+  // ✅ Verify JWT Token
+  let decoded;
+  try {
+    decoded = jwt.verify(token, resetPassSecret) as {
+      id: string;
+      email: string;
+    };
+    console.log("✅ Token verified"); // ✅ Debug
+  } catch (error: any) {
+    console.error("❌ Token verification failed:", error.message); // ✅ Error
+    throw new ApiError(400, "Invalid or expired reset link");
+  }
+
+  // ✅ Check if email matches token
+  if (decoded.email !== email) {
+    throw new ApiError(400, "Invalid reset request");
+  }
+
+  // ✅ Find User
   const user = await prisma.user.findUnique({
     where: { email },
   });
 
   if (!user) {
-    throw new ApiError(400, "Invalid or expired reset link");
+    throw new ApiError(400, "User not found");
   }
 
-  const resetToken = await prisma.passwordResetToken.findFirst({
-    where: {
-      userId: user.id,
-      expiresAt: { gt: new Date() },
-    },
-  });
-
-  if (!resetToken || !(await bcrypt.compare(token, resetToken.token))) {
-    throw new ApiError(400, "Invalid or expired reset link");
-  }
-
-  // Update password
+  // ✅ Hash New Password
   const hashedPassword = await bcrypt.hash(newPassword, 10);
+
+  // ✅ Update Password
   await prisma.user.update({
     where: { id: user.id },
     data: { password: hashedPassword },
   });
 
-  // Delete the token after use
-  await prisma.passwordResetToken.delete({
-    where: { id: resetToken.id },
-  });
+  console.log("✅ Password updated successfully"); // ✅ Debug
 };
 export const refreshToken = async (incomingRefreshToken: string) => {
   // 1. refreshToken ভেরিফাই করা (এক্সপায়ারি চেক করা)
