@@ -21,6 +21,6 @@ router.get(
   bookingController.getEventBookings
 );
 router.patch("/:id/cancel", auth(), bookingController.cancelBooking);
-
+router.post("/validate-coupon", bookingController.validateCoupon);
 export default router;
 export const BookingRoutes = router;

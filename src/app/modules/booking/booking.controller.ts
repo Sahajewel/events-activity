@@ -1,3 +1,4 @@
+// src/modules/booking/booking.controller.ts
 import { Request, Response } from "express";
 import * as bookingService from "./booking.service";
 import asyncHandler from "../../shared/asyncHandler";
@@ -5,13 +6,8 @@ import ApiResponse from "../../shared/apiResponse";
 
 export const createBooking = asyncHandler(
   async (req: Request & { user: any }, res: Response) => {
-    const booking = await bookingService.createBooking(
-      req.user!.id,
-      req.body.eventId
-    );
-    res
-      .status(201)
-      .json(new ApiResponse(201, booking, "Booking created successfully"));
+    const booking = await bookingService.createBooking(req.user.id, req.body);
+    res.status(201).json(new ApiResponse(201, booking, "Booking created"));
   }
 );
 
@@ -41,5 +37,20 @@ export const cancelBooking = asyncHandler(
       req.user!.id
     );
     res.json(new ApiResponse(200, booking, "Booking cancelled successfully"));
+  }
+);
+
+// ✅ New: Validate coupon endpoint
+export const validateCoupon = asyncHandler(
+  async (req: Request, res: Response) => {
+    const { code, eventId, quantity } = req.body;
+
+    const validation = await bookingService.validateCoupon(
+      code,
+      eventId,
+      quantity || 1
+    );
+
+    res.json(new ApiResponse(200, validation, "Coupon validated successfully"));
   }
 );

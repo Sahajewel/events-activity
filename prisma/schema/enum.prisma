@@ -36,3 +36,8 @@ enum RequestStatus {
     APPROVED
     REJECTED
 }
+
+enum CouponType {
+    PERCENTAGE // 10%, 20%, etc.
+    FIXED // Fixed amount like 50, 100
+}

@@ -1,9 +1,14 @@
 model Booking {
-    id      String        @id @default(uuid())
-    userId  String
-    eventId String
-    status  BookingStatus @default(PENDING)
-    amount  Float
+    id         String        @id @default(uuid())
+    userId     String
+    eventId    String
+    status     BookingStatus @default(PENDING)
+    amount     Float
+    // 🆕 New fields for quantity and coupon
+    quantity   Int           @default(1) // Number of people
+    subtotal   Float? // Before discount
+    discount   Float         @default(0) // Discount amount
+    couponCode String? // Applied coupon code
 
     user  User  @relation(fields: [userId], references: [id], onDelete: Cascade)
     event Event @relation(fields: [eventId], references: [id], onDelete: Cascade)
@@ -16,5 +21,6 @@ model Booking {
     @@unique([userId, eventId])
     @@index([userId])
     @@index([eventId])
+    @@index([couponCode])
     @@map("bookings")
 }
