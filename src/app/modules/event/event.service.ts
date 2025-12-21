@@ -4,6 +4,7 @@ import prisma from "../../shared/prisma";
 import { PaginationOptions } from "../../shared/pagination";
 import { calculatePagination } from "../../shared/calculatePagination";
 import ApiError from "../../errors/ApiError";
+import Pusher from "pusher";
 
 interface EventFilters {
   type?: string;
@@ -15,6 +16,13 @@ interface EventFilters {
   joiningFee?: number;
 }
 
+const pusher = new Pusher({
+  appId: "2093616",
+  key: "1e585517d24cb8cf7fc4",
+  secret: "e068e83e6e4de6500863",
+  cluster: "ap3",
+  useTLS: true,
+});
 export const createEvent = async (
   hostId: string,
   data: any,
@@ -48,7 +56,12 @@ export const createEvent = async (
       },
     },
   });
-
+  pusher.trigger("events-channel", "new-event", {
+    title: "New Event Alert! 🔥",
+    message: `${event.host.fullName} has created a new event: ${event.name}`,
+    type: event.type,
+    id: event.id,
+  });
   return event;
 };
 
