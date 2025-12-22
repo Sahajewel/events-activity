@@ -54,7 +54,12 @@ export const updateEvent = asyncHandler(
 );
 export const deleteEvent = asyncHandler(
   async (req: Request & { user: any }, res: Response) => {
-    const result = await eventService.deleteEvent(req.params.id, req.user!.id);
+    // req.user theke id ar role (Host/Admin) nichen
+    const result = await eventService.deleteEvent(
+      req.params.id,
+      req.user!.id,
+      req.user!.role
+    );
     res.json(new ApiResponse(200, result, "Event deleted successfully"));
   }
 );

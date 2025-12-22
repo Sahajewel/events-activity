@@ -219,99 +219,6 @@ export const getEventById = async (eventId: string) => {
 };
 
 // eventService.updateEvent
-export const updateEvent = async (
-  eventId: string,
-  hostId: string,
-  data: any,
-  file?: Express.Multer.File
-) => {
-  const event = await prisma.event.findUnique({
-    where: { id: eventId },
-  });
-
-  if (!event) {
-    throw new ApiError(404, "Event not found");
-  }
-
-  // Permission check
-  if (event.hostId !== hostId) {
-    throw new ApiError(403, "You are not authorized to update this event");
-  }
-
-  let imageUrl = event.imageUrl;
-
-  // Jodi new image upload kora hoy
-  if (file) {
-    // Puran image thakle delete kor (optional, but recommended)
-    if (event.imageUrl) {
-      const publicId = event.imageUrl.split("/").pop()?.split(".")[0];
-      await cloudinary.uploader.destroy(`events-platform/events/${publicId}`);
-    }
-
-    const result = await cloudinary.uploader.upload(
-      `data:${file.mimetype};base64,${file.buffer.toString("base64")}`,
-      {
-        folder: "events-platform/events",
-      }
-    );
-    imageUrl = result.secure_url;
-  }
-
-  // Final update
-  const updatedEvent = await prisma.event.update({
-    where: { id: eventId },
-    data: {
-      name: data.name,
-      type: data.type,
-      description: data.description,
-      location: data.location,
-      date: data.date ? new Date(data.date) : undefined,
-      joiningFee:
-        data.joiningFee !== undefined ? Number(data.joiningFee) : undefined,
-      maxParticipants: data.maxParticipants
-        ? Number(data.maxParticipants)
-        : undefined,
-      minParticipants:
-        data.minParticipants !== undefined && data.minParticipants !== null
-          ? Number(data.minParticipants)
-          : null,
-      status: data.status,
-      imageUrl: imageUrl,
-    },
-    include: {
-      host: {
-        select: {
-          id: true,
-          fullName: true,
-          profileImage: true,
-        },
-      },
-    },
-  });
-
-  return updatedEvent;
-};
-
-export const deleteEvent = async (eventId: string, hostId: string) => {
-  const cleanedEventId = eventId.trim();
-  const event = await prisma.event.findUnique({
-    where: { id: cleanedEventId },
-  });
-
-  if (!event) {
-    throw new ApiError(404, "Event not found");
-  }
-
-  if (event.hostId !== hostId) {
-    throw new ApiError(403, "You do not have permission to delete this event");
-  }
-
-  await prisma.event.delete({
-    where: { id: cleanedEventId },
-  });
-
-  return { message: "Event deleted successfully" };
-};
 
 export const getMyHostedEvents = async (hostId: string) => {
   const events = await prisma.event.findMany({
@@ -325,4 +232,49 @@ export const getMyHostedEvents = async (hostId: string) => {
   });
 
   return events;
+};
+// DELETE EVENT SERVICE
+export const deleteEvent = async (
+  eventId: string,
+  userId: string,
+  role: string
+) => {
+  const event = await prisma.event.findUnique({
+    where: { id: eventId.trim() },
+  });
+
+  if (!event) throw new ApiError(404, "Event not found");
+
+  // ⭐ Logic: Admin holeo parbe, Host tar nijer event holeo parbe
+  const isAdmin = role === "ADMIN";
+  const isOwner = event.hostId === userId;
+
+  if (!isAdmin && !isOwner) {
+    throw new ApiError(403, "You do not have permission to delete this event");
+  }
+
+  await prisma.event.delete({ where: { id: event.id } });
+  return { message: "Event deleted successfully" };
+};
+
+// UPDATE EVENT SERVICE
+export const updateEvent = async (
+  eventId: string,
+  userId: string,
+  role: string,
+  data: any,
+  file?: any
+) => {
+  const event = await prisma.event.findUnique({
+    where: { id: eventId },
+  });
+
+  if (!event) throw new ApiError(404, "Event not found");
+
+  // ⭐ Same Logic: Admin OR Owner (Host) can update
+  if (role !== "ADMIN" && event.hostId !== userId) {
+    throw new ApiError(403, "You are not authorized to update this event");
+  }
+
+  // ... (Upload logic and prisma.update logic as you have it)
 };
